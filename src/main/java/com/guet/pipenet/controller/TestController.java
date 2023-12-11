@@ -1,0 +1,150 @@
+package com.guet.pipenet.controller;
+
+import com.guet.pipenet.service.RedisService;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import com.guet.pipenet.entity.UserInfo;
+import com.guet.pipenet.mapper.UserInfoMapper;
+import com.guet.pipenet.utils.JsonUtil;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+@RestController
+
+@RequestMapping(value = "/test")
+public class TestController
+{
+    @Autowired
+    private RedisService redisService;
+
+    @Autowired
+    private UserInfoMapper userInfoMapper;
+
+    @RequestMapping(value = "/index")
+    public String index()
+    {
+        return "hello world";
+    }
+
+    /**
+     * 向redis存储值
+     *
+     * @throws Exception
+     */
+    @PostMapping("/set")
+    public String set(@RequestBody Map<String, String> req) throws Exception
+    {
+        String key = req.get("key");
+        String value = req.get("value");
+        redisService.set(key, value);
+        return "success";
+    }
+
+    /**
+     * 获取redis中的值
+     *
+     * @param key
+     * @return
+     */
+    @GetMapping("/get")
+    public String get(String key)
+    {
+        try
+        {
+            return redisService.get(key);
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    /**
+     * 获取数据库中的用户
+     *
+     * @param id
+     * @return
+     */
+    @GetMapping("/getUser/{id}")
+    public String get(@PathVariable("id") int id)
+    {
+        try
+        {
+            UserInfo user = userInfoMapper.selectByPrimaryKey(id);
+            return JsonUtil.getJsonString(user);
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+
+    public static void main(String[] args)
+    {
+        Map<String, Object> keyMap = new HashMap<>();
+        keyMap.put("id", "编号");
+        keyMap.put("name", "名称");
+
+        String[] cnCloumn = {"编号", "名称"};
+
+        System.out.println(Arrays.asList(convertMap(keyMap, cnCloumn)));
+    }
+
+    public static String[] convertMap(Map<String, Object> keyMap, String[] dataList)
+    {
+
+        for (int i = 0; i < dataList.length; i++)
+        {
+
+            for (Map.Entry<String, Object> m : keyMap.entrySet())
+            {
+                if (m.getValue().equals(dataList[i]))
+                {
+                    dataList[i] = m.getKey();
+                }
+            }
+        }
+
+        return dataList;
+    }
+
+
+    public static String getName(String name, String add)
+    {
+        return null;
+    }
+
+    public static void testGetClassName()
+    {
+        // 方法1：通过SecurityManager的保护方法getClassContext()
+        String clazzName = new SecurityManager()
+        {
+            public String getClassName()
+            {
+                return getClassContext()[1].getName();
+            }
+        }.getClassName();
+        System.out.println(clazzName);
+        // 方法2：通过Throwable的方法getStackTrace()
+        String clazzName2 = new Throwable().getStackTrace()[1].getClassName();
+        System.out.println(clazzName2);
+        // 方法3：通过分析匿名类名称()
+        String clazzName3 = new Object()
+        {
+            public String getClassName()
+            {
+                String clazzName = this.getClass().getName();
+                return clazzName.substring(0, clazzName.lastIndexOf('$'));
+            }
+        }.getClassName();
+        System.out.println(clazzName3);
+        //方法4：通过Thread的方法getStackTrace()
+        String clazzName4 = Thread.currentThread().getStackTrace()[2].getClassName();
+        System.out.println(clazzName4);
+    }
+}
